@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Button button;
     TextView text;
+    TextView text1;
     SpeechRecognizer speechRecognizer;
 
     @Override
@@ -32,11 +33,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},3);
         }
 
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-        speechRecognizer.setRecognitionListener(new Listener());
-
         button = findViewById(R.id.button);
         text = findViewById(R.id.text);
+        text1 = findViewById(R.id.text1);
 
         button.setOnClickListener(this);
     }
@@ -62,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
 
             case R.id.button:
+                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                speechRecognizer.setRecognitionListener(new Listener());
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,5);
@@ -106,13 +107,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onResults(Bundle bundle) {
-            String str = new String();
             ArrayList data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            for (int i = 0; i < data.size(); i++)
-            {
-                str += data.get(i);
-            }
-            text.setText("results: "+ str);
+            text1.setText("Results: "+ data.get(0));
+            speechRecognizer.stopListening();
+            speechRecognizer.destroy();
         }
 
         @Override
