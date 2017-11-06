@@ -22,7 +22,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button button;
     TextView text;
     TextView text1;
+    TextView text2;
     SpeechRecognizer speechRecognizer;
+    ArrayList<String> letters;
+    int count;
+
+    private void compareLetters(ArrayList<String> arrayList, ArrayList<String> data) {
+
+        String letter = arrayList.get(count);
+        System.out.println("LETTER: " + letter);
+            for (int i = 0; i<data.size(); i++) {
+                System.out.println("FOR: " + data.get(i));
+                if(letter == data.get(i)) {
+                    count++;
+                    text.setText("RIGHT");
+                } else {
+                    text.setText("WRONG");
+                }
+            }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +51,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},3);
         }
 
+        letters = new ArrayList<String>();
+        count = 0;
+
+        for (int i = 0; i<26; i++) {
+            String s = "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ";
+            letters.add(i, String.valueOf(s.charAt(i)));
+        }
+
         button = findViewById(R.id.button);
         text = findViewById(R.id.text);
         text1 = findViewById(R.id.text1);
+        text2 = findViewById(R.id.text5);
 
         button.setOnClickListener(this);
     }
@@ -65,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 speechRecognizer.setRecognitionListener(new Listener());
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "nb-NO");
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,5);
                 speechRecognizer.startListening(intent);
                 break;
@@ -107,8 +135,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onResults(Bundle bundle) {
-            ArrayList data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            for (int i = 0; i<data.size(); i++) {
+                data.set(i, data.get(i).toUpperCase());
+            }
             text1.setText("Results: "+ data.get(0));
+            compareLetters(letters, data);
             speechRecognizer.stopListening();
             speechRecognizer.destroy();
         }
