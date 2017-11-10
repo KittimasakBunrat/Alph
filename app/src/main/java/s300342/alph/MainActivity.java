@@ -27,15 +27,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<String> letters;
     int count;
 
+    //FOR LOOP, TRENGER IKKE ASCII
     private void compareLetters(ArrayList<String> arrayList, ArrayList<String> data) {
-
-        String letter = arrayList.get(count);
-        System.out.println("LETTER: " + letter);
-            for (int i = 0; i<data.size(); i++) {
-                System.out.println("FOR: " + data.get(i));
-                if(letter == data.get(i)) {
+        char CHAR = arrayList.get(count).charAt(0);
+        int asci = (int) CHAR;
+        System.out.println("ARRAYLIST" + asci);
+        for (int i = 0; i<data.size(); i++) {
+                char character = data.get(i).charAt(0);
+                int ascii = (int) character;
+                System.out.println("DATA: " + ascii);
+                if(asci == ascii) {
                     count++;
                     text.setText("RIGHT");
+                    break;
                 } else {
                     text.setText("WRONG");
                 }
@@ -63,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         text = findViewById(R.id.text);
         text1 = findViewById(R.id.text1);
         text2 = findViewById(R.id.text5);
+
+        text2.setText(letters.get(count));
 
         button.setOnClickListener(this);
     }
