@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -20,25 +21,21 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     Button button;
+    Button button1;
     TextView text;
     TextView text1;
     TextView text2;
     SpeechRecognizer speechRecognizer;
     ArrayList<String> letters;
     int count;
+    SpeechLetter sl;
 
-    //FOR LOOP, TRENGER IKKE ASCII
     private void compareLetters(ArrayList<String> arrayList, ArrayList<String> data) {
-        char CHAR = arrayList.get(count).charAt(0);
-        int asci = (int) CHAR;
-        System.out.println("ARRAYLIST" + asci);
         for (int i = 0; i<data.size(); i++) {
-                char character = data.get(i).charAt(0);
-                int ascii = (int) character;
-                System.out.println("DATA: " + ascii);
-                if(asci == ascii) {
+                if(arrayList.get(count).equals(data.get(i))) {
                     count++;
                     text.setText("RIGHT");
+                    next(button1, 1, true);
                     break;
                 } else {
                     text.setText("WRONG");
@@ -50,11 +47,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},3);
         }
 
+        sl = new SpeechLetter(this);
         letters = new ArrayList<String>();
         count = 0;
 
@@ -64,13 +62,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         button = findViewById(R.id.button);
+        button1 = findViewById(R.id.button1);
         text = findViewById(R.id.text);
         text1 = findViewById(R.id.text1);
         text2 = findViewById(R.id.text5);
 
         text2.setText(letters.get(count));
 
+        next(button1, 0, false);
         button.setOnClickListener(this);
+        button1.setOnClickListener(this);
+        text2.setOnClickListener(this);
     }
 
     @Override
@@ -89,6 +91,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    public void next(Button b, int i,boolean bool) {
+        b.setAlpha(i);
+        b.setClickable(bool);
+    }
+
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -101,6 +108,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "nb-NO");
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,5);
                 speechRecognizer.startListening(intent);
+                break;
+
+            case R.id.button1:
+                next(button1, 0, false);
+                text2.setText(letters.get(count));
+                text1.setText("Results: ");
+                break;
+
+            case R.id.text5:
+                sl.speak(letters.get(count));
                 break;
 
             default:
