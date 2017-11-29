@@ -17,13 +17,14 @@ public class SpeechLetter implements TextToSpeech.OnInitListener {
 
     public SpeechLetter(Context con) {
         tts = new TextToSpeech(con,this);
-        tts.setPitch(0.5f);
-        tts.setLanguage(Locale.CHINESE);
+        tts.setPitch(1f);
     }
 
     @Override
     public void onInit(int i) {
         if(i != TextToSpeech.ERROR) {
+            tts.setLanguage(new Locale("nb-NO"));
+        } else {
             tts.setLanguage(Locale.ENGLISH);
         }
     }
