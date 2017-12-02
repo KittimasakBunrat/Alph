@@ -1,6 +1,7 @@
 package s300342.alph;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.speech.RecognitionListener;
@@ -13,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -123,6 +125,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 break;
         }
+    }
+
+    public void dialog() {
+        Dialog pictureDialog = new Dialog(this);
+        pictureDialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        pictureDialog.setContentView(getLayoutInflater().inflate());
     }
 
     class Listener implements RecognitionListener {
