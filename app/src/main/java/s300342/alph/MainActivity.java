@@ -4,10 +4,11 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
+import android.os.CountDownTimer;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -15,14 +16,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    Button button;
+    ImageButton button;
     Button button1;
     TextView text;
     TextView text1;
@@ -31,28 +35,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<String> letters;
     int count;
     SpeechLetter sl;
-
-    private void compareLetters(ArrayList<String> arrayList, ArrayList<String> data) {
-        for (int i = 0; i<data.size(); i++) {
-                if(arrayList.get(count).equals(data.get(i))) {
-                    count++;
-                    text.setText("RIGHT");
-                    next(button1, 1, true);
-                    break;
-                } else {
-                    text.setText("WRONG");
-                }
-            }
-    }
+    Animation au;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},3);
-        }
 
         sl = new SpeechLetter(this);
         letters = new ArrayList<String>();
@@ -67,35 +55,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         button1 = findViewById(R.id.button1);
         text = findViewById(R.id.text);
         text1 = findViewById(R.id.text1);
-        text2 = findViewById(R.id.text5);
+        text2 = findViewById(R.id.text2);
 
         text2.setText(letters.get(count));
+        au = AnimationUtils.loadAnimation(this, R.anim.bounce);
+        au.setRepeatCount(Animation.INFINITE);
+        au.setDuration(1000);
+        text2.startAnimation(au);
+
 
         next(button1, 0, false);
         button.setOnClickListener(this);
         button1.setOnClickListener(this);
         text2.setOnClickListener(this);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        switch (requestCode) {
-            case 3: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Intent i = new Intent(this, MainActivity.class);
-                    startActivity(i);
-                } else {
-                    finish();
-                }
-                finish();
-            }
-        }
-    }
-
-    public void next(Button b, int i,boolean bool) {
-        b.setAlpha(i);
-        b.setClickable(bool);
+        text1.setText("Trykk på mikrofon for å snakke");
+        text.setText(currentAlphabet());
     }
 
     @Override
@@ -114,11 +88,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.button1:
                 next(button1, 0, false);
-                text2.setText(letters.get(count));
-                text1.setText("Results: ");
+                count++;
+                clear();
                 break;
 
-            case R.id.text5:
+            case R.id.text2:
                 sl.speak(letters.get(count));
                 break;
 
@@ -127,41 +101,92 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void dialog() {
-        Dialog pictureDialog = new Dialog(this);
+    private void compareLetters(ArrayList<String> arrayList, ArrayList<String> data) {
+        for (int i = 0; i<data.size(); i++) {
+            if(arrayList.get(count).equals(data.get(i)) || data.get(i).contains(arrayList.get(count))) {
+                dialog(R.layout.correct);
+                next(button1, 1, true);
+                text1.setText("Bra jobbet!");
+                break;
+            } else {
+                text1.setText("Prøv med ett ord med samme forbokstav!");
+                dialog(R.layout.wrong);
+                break;
+            }
+        }
+    }
+
+    public void next(Button b, int i,boolean bool) {
+        b.setAlpha(i);
+        b.setClickable(bool);
+        if(count == 28) {
+            count = 0;
+        }
+    }
+
+    public void clear() {
+        text2.setText(letters.get(count));
+        text.setText(currentAlphabet());
+        text1.setText("");
+        text2.startAnimation(au);
+    }
+
+    public void dialog(int i) {
+        final Dialog pictureDialog = new Dialog(this);
         pictureDialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-        pictureDialog.setContentView(getLayoutInflater().inflate());
+        pictureDialog.setContentView(getLayoutInflater().inflate(i, null));
+        pictureDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        pictureDialog.show();
+        new CountDownTimer(1000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+            }
+
+            public void onFinish() {
+                pictureDialog.cancel();
+            }
+        }.start();
+    }
+
+    public String currentAlphabet() {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < letters.size(); i++) {
+            if(i == count) {
+                sb.append(" > " + letters.get(i) + " < ");
+            } else {
+                sb.append(letters.get(i));
+            }
+        }
+        return sb.toString();
     }
 
     class Listener implements RecognitionListener {
         @Override
         public void onReadyForSpeech(Bundle bundle) {
-            text.setText("Ready for speech");
         }
 
         @Override
         public void onBeginningOfSpeech() {
-            text.setText("Beginning of speech");
         }
 
         @Override
         public void onRmsChanged(float v) {
-            text.setText("onRmsChanged");
+            text1.setText("Snakk!");
+            button.setImageDrawable(getResources().getDrawable(R.drawable.microphone1));
         }
 
         @Override
         public void onBufferReceived(byte[] bytes) {
-            text.setText("onBufferReceived");
         }
 
         @Override
         public void onEndOfSpeech() {
-            text.setText("onEndOfSpeech");
         }
 
         @Override
         public void onError(int i) {
-            text.setText("onError");
+            text1.setText("Prøv igjen!");
+            button.setImageDrawable(getResources().getDrawable(R.drawable.microphone));
         }
 
         @Override
@@ -170,10 +195,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (int i = 0; i<data.size(); i++) {
                 data.set(i, data.get(i).toUpperCase());
             }
-            text1.setText("Results: "+ data.get(0));
             compareLetters(letters, data);
             speechRecognizer.stopListening();
             speechRecognizer.destroy();
+            button.setImageDrawable(getResources().getDrawable(R.drawable.microphone));
         }
 
         @Override
